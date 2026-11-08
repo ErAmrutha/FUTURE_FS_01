@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#ff7b54">
+<title>🐒 CATCH THE IDIOT</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#fff3d6;color:#2d1834}
+body{touch-action:none}
+button{font:inherit}
+#app{position:relative;width:100%;height:100%;min-height:100dvh;overflow:hidden;background:
+radial-gradient(circle at 15% 15%,#fff 0 8%,transparent 9%),
+radial-gradient(circle at 90% 30%,#ffd2e1 0 10%,transparent 11%),
+linear-gradient(145deg,#fff2c9,#ffd5d9 48%,#cceeff)}
+.screen{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:22px;z-index:10}
+.screen.active{display:flex}
+.card{width:min(92vw,520px);padding:30px 22px;border:4px solid #2d1834;border-radius:32px;background:#fffdf5;box-shadow:0 12px 0 #2d1834,0 22px 40px #5b244533;text-align:center}
+.monkeyBig{font-size:92px;line-height:1;animation:wobble 1.2s infinite}
+h1{font-size:clamp(38px,11vw,68px);line-height:.9;margin:16px 0 12px;font-weight:1000;letter-spacing:-3px}
+.subtitle{font-weight:800;font-size:17px;line-height:1.45}
+.btn{border:4px solid #2d1834;border-radius:18px;padding:16px 28px;background:#ff6b4a;color:#fff;font-weight:1000;font-size:23px;box-shadow:0 7px 0 #2d1834;cursor:pointer;margin-top:20px}
+.btn:active{transform:translateY(5px);box-shadow:0 2px 0 #2d1834}
+.hint{margin-top:18px;font-size:13px;font-weight:800;opacity:.7}
+#game{position:absolute;inset:0;display:none}
+#game.active{display:block}
+.hud{position:absolute;top:max(12px,env(safe-area-inset-top));left:12px;right:12px;z-index:5;display:flex;justify-content:space-between;gap:8px}
+.pill{background:#fffdf5;border:3px solid #2d1834;border-radius:18px;padding:8px 12px;font-weight:1000;box-shadow:0 4px 0 #2d1834;font-size:15px}
+#arena{position:absolute;inset:0}
+.target,.decoy{position:absolute;width:76px;height:76px;border:0;background:transparent;padding:0;font-size:58px;line-height:76px;text-align:center;filter:drop-shadow(0 5px 0 #2d1834);cursor:pointer;user-select:none}
+.target{z-index:3;animation:pop .18s ease-out}
+.decoy{z-index:2;animation:pop .18s ease-out}
+.tiny{transform:scale(.55)}
+.msg{position:absolute;left:50%;top:54%;transform:translate(-50%,-50%) rotate(-3deg);z-index:8;font-size:clamp(24px,8vw,44px);font-weight:1000;color:#2d1834;text-shadow:3px 3px 0 #fff;pointer-events:none;white-space:nowrap;animation:msg .7s ease-out forwards}
+.flash{position:absolute;inset:0;background:#fff;z-index:7;pointer-events:none;animation:flash .22s}
+.serious{position:absolute;left:50%;top:25%;transform:translateX(-50%);z-index:6;background:#2d1834;color:#fff;border-radius:16px;padding:10px 14px;font-size:15px;font-weight:1000;white-space:nowrap;animation:drop .5s}
+#runner{position:absolute;z-index:6;padding:8px 13px;border:3px solid #2d1834;border-radius:13px;background:#7cf29a;font-weight:1000;box-shadow:0 4px 0 #2d1834;display:none}
+.shake{animation:shake .28s}
+@keyframes wobble{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg) translateY(-5px)}}
+@keyframes pop{from{transform:scale(.25) rotate(-25deg);opacity:.1}to{transform:scale(1) rotate(0);opacity:1}}
+@keyframes msg{0%{opacity:0;transform:translate(-50%,-50%) scale(.6) rotate(-8deg)}25%{opacity:1;transform:translate(-50%,-60%) scale(1.08) rotate(3deg)}100%{opacity:0;transform:translate(-50%,-95%) scale(.9) rotate(8deg)}}
+@keyframes flash{from{opacity:.7}to{opacity:0}}
+@keyframes shake{0%,100%{transform:translate(0)}25%{transform:translate(7px,-4px)}50%{transform:translate(-7px,4px)}75%{transform:translate(4px,2px)}}
+@keyframes drop{from{transform:translate(-50%,-30px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+</style>
+</head>
+<body>
+<div id="app">
+  <section id="start" class="screen active">
+    <div class="card">
+      <div class="monkeyBig">🐒</div>
+      <h1>CATCH<br>THE IDIOT!</h1>
+      <div class="subtitle">20 seconds. One stupid monkey.<br>Tap him. BONK him. Don't trust the fake ones. 💀</div>
+      <button class="btn" id="startBtn">START CHASING 🐒</button>
+      <div class="hint">+10 catch · −2 decoy · −1 empty tap</div>
+    </div>
+  </section>
+
+  <section id="game">
+    <div class="hud">
+      <div class="pill">🏆 SCORE: <span id="score">0</span></div>
+      <div class="pill">⏱️ <span id="time">20.0</span>s</div>
+    </div>
+    <div id="arena"></div>
+    <button id="runner">YOU WON 😎</button>
+  </section>
+
+  <section id="end" class="screen">
+    <div class="card">
+      <div id="endEmoji" class="monkeyBig">💀</div>
+      <h1 id="endTitle">TIME'S UP!</h1>
+      <div class="subtitle" id="endText"></div>
+      <button class="btn" id="againBtn">REVENGE 😤</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const $=id=>document.getElementById(id);
+  const start=$('start'), game=$('game'), end=$('end'), arena=$('arena');
+  const scoreEl=$('score'), timeEl=$('time'), runner=$('runner');
+  let score=0, startTime=0, timer=null, moveTimer=null, running=false;
+  let target=null, decoys=[], tinyNext=false, seriousShown=false, lastTen=false, speedBoost=false;
+
+  const goodMsgs=["BONK! 😂","GOT HIM!","TOO SLOW 🐒","CAUGHT IN 4K 💀","MONKEY DOWN!","NOOOO 😭"];
+  const wrongMsgs=["WRONG MONKEY 💀","THAT'S HIS COUSIN 😭","BRO... REALLY?","FAKE MONKEY 🤡"];
+  const missMsgs=["BRO MISSED 😭","AIM LIKE A HUMAN 💀","THE FLOOR DID NOTHING 😭","HELLO?? MONKEY IS OVER THERE"];
+  const chaosMsgs=["WHY ARE YOU CHASING ME 😭","I HAVE RIGHTS! 🐒","STOP TAPPING ME 💀","BRO LET ME LIVE"];
+
+  function rand(a,b){return Math.random()*(b-a)+a}
+  function pick(a){return a[Math.floor(Math.random()*a.length)]}
+  function pos(el){
+    const pad=12, top=82, w=innerWidth, h=innerHeight;
+    const x=rand(pad,Math.max(pad,w-88-pad));
+    const y=rand(top,Math.max(top,h-100-pad));
+    el.style.left=x+"px"; el.style.top=y+"px";
+  }
+  function msg(t){
+    const m=document.createElement('div');m.className='msg';m.textContent=t;game.appendChild(m);
+    setTimeout(()=>m.remove(),720);
+  }
+  function flash(){
+    const f=document.createElement('div');f.className='flash';game.appendChild(f);setTimeout(()=>f.remove(),240);
+    game.classList.remove('shake');void game.offsetWidth;game.classList.add('shake');
+  }
+  function makeTarget(){
+    if(!running)return;
+    if(target)target.remove();
+    target=document.createElement('button');
+    target.className='target';
+    target.textContent=pick(["🐒","🐒","🐵"]);
+    target.setAttribute('aria-label','Catch the monkey');
+    target.addEventListener('pointerdown',e=>{e.stopPropagation();catchMonkey()},{passive:false});
+    arena.appendChild(target); pos(target);
+    if(tinyNext){target.classList.add('tiny');tinyNext=false}
+    if(Math.random()<.13){
+      target.style.opacity='0';
+      setTimeout(()=>{if(target)target.style.opacity='1'},220);
+    }
+  }
+  function clearDecoys(){decoys.forEach(d=>d.remove());decoys=[]}
+  function makeDecoys(){
+    clearDecoys();
+    const n=score>=50 ? (Math.random()<.45?3:2) : (Math.random()<.18?1:0);
+    for(let i=0;i<n;i++){
+      const d=document.createElement('button');d.className='decoy';
+      d.textContent=pick(["🙈","🙉","🙊","🐵"]);
+      d.addEventListener('pointerdown',e=>{e.stopPropagation();wrong(d)},{passive:false});
+      arena.appendChild(d);pos(d);decoys.push(d);
+    }
+  }
+  function wrong(d){
+    if(!running)return;
+    score=Math.max(0,score-2); scoreEl.textContent=score;
+    msg(pick(wrongMsgs)); d.remove(); decoys=decoys.filter(x=>x!==d);
+  }
+  function catchMonkey(){
+    if(!running)return;
+    score+=10;scoreEl.textContent=score;
+    flash(); msg(pick(goodMsgs));
+    if(score>=100){win();return}
+    if(Math.random()<.13)msg(pick(chaosMsgs));
+    clearDecoys();
+    makeTarget(); makeDecoys();
+    scheduleMove();
+  }
+  function scheduleMove(){
+    clearTimeout(moveTimer);
+    if(!running)return;
+    const min=Math.max(230,800-score*4);
+    const max=Math.max(360,1050-score*4);
+    moveTimer=setTimeout(()=>{makeTarget();makeDecoys();scheduleMove()},rand(min,max));
+  }
+  function emptyTap(e){
+    if(!running)return;
+    if(e.target.closest('.target,.decoy,#runner'))return;
+    score=Math.max(0,score-1);scoreEl.textContent=score;msg(pick(missMsgs));
+  }
+  arena.addEventListener('pointerdown',emptyTap,{passive:true});
+
+  function showSerious(){
+    if(seriousShown)return;seriousShown=true;
+    const s=document.createElement('div');s.className='serious';s.textContent='THE MONKEY IS GETTING SERIOUS 💀';
+    game.appendChild(s);setTimeout(()=>s.remove(),1900);
+  }
+  function startGame(){
+    start.classList.remove('active');end.classList.remove('active');game.classList.add('active');
+    score=0;scoreEl.textContent=0;running=true;seriousShown=false;lastTen=false;speedBoost=false;
+    startTime=performance.now(); makeTarget();makeDecoys();scheduleMove();
+    clearInterval(timer);
+    timer=setInterval(()=>{
+      const left=Math.max(0,20-(performance.now()-startTime)/1000);
+      timeEl.textContent=left.toFixed(1);
+      if(left<=10 && !lastTen){lastTen=true;showSerious()}
+      if(left<=5 && !speedBoost){speedBoost=true;msg("5 SECONDS! 🐒💨")}
+      if(left<=0)lose();
+    },50);
+  }
+  function cleanup(){
+    running=false;clearInterval(timer);clearTimeout(moveTimer);timer=null;moveTimer=null;
+    if(target){target.remove();target=null}clearDecoys();runner.style.display='none';
+  }
+  function lose(){
+    cleanup();end.classList.add('active');
+    $('endEmoji').textContent=score>=50?'😵‍💫':'💀';
+    $('endTitle').textContent="TIME'S UP!";
+    $('endText').innerHTML=`You scored <b>${score}</b> points.<br>${score>=80?'YOU ALMOST BONKED THE IDIOT. 😭':'The monkey is currently laughing at you. 🐒'}`;
+  }
+  function win(){
+    cleanup();end.classList.add('active');
+    $('endEmoji').textContent='🏆🐒';
+    $('endTitle').textContent='YOU WON! 💀';
+    $('endText').innerHTML=`<b>100 POINTS!</b><br>You officially caught the idiot.<br>The monkey has requested a lawyer. 😭`;
+  }
+
+  runner.addEventListener('pointerdown',e=>{
+    e.stopPropagation();msg("HAHA NICE TRY 🤡");
+    runner.style.display='none';
+    setTimeout(()=>{if(running){pos(runner);runner.style.display='block'}},260);
+  });
+  function runnerEvent(){
+    if(!running || score<30 || Math.random()>0.28)return;
+    runner.textContent=pick(["YOU WON 😎","FREE 100 POINTS!","TAP ME 👀"]);
+    pos(runner);runner.style.display='block';
+    setTimeout(()=>{runner.style.display='none'},1200);
+  }
+  setInterval(()=>{if(running)runnerEvent()},2600);
+
+  $('startBtn').addEventListener('click',startGame);
+  $('againBtn').addEventListener('click',startGame);
+
+  // Occasional tiny-monkey and chaos events.
+  setInterval(()=>{
+    if(!running)return;
+    if(Math.random()<.22)tinyNext=true;
+    if(Math.random()<.10){msg(pick(chaosMsgs))}
+  },2400);
+
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden && running) { /* game clock intentionally continues */ }
+  });
+})();
+</script>
+</body>
+</html>

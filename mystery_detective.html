@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Mystery Detective</title>
+    <style>
+        :root {
+            --bg-color: #1a1a24;
+            --panel-color: #252538;
+            --accent-color: #ff9f43;
+            --text-color: #f5f6fa;
+            --text-muted: #a4b0be;
+            --success-color: #2ed573;
+            --danger-color: #ff4757;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e1e2f 0%, #11111d 100%);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        @media (min-height: 700px) and (min-width: 480px) {
+            #game-container {
+                height: 850px;
+                border-radius: 16px;
+            }
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            padding: 24px;
+            overflow-y: auto;
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Start Screen Styling */
+        #start-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .logo-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .magnifier-lens {
+            font-size: 80px;
+            display: inline-block;
+            animation: searchAnim 3s ease-in-out infinite;
+        }
+
+        @keyframes searchAnim {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(15px, -10px) rotate(10deg); }
+            50% { transform: translate(-10px, 15px) rotate(-10deg); }
+            75% { transform: translate(10px, 10px) rotate(5deg); }
+        }
+
+        h1 {
+            font-size: 28px;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        .input-group {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 30px;
+            border: 2px solid #3d3d5c;
+            background-color: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-color);
+            background-color: rgba(255,255,255,0.1);
+            box-shadow: 0 0 10px rgba(255, 159, 67, 0.3);
+        }
+
+        .btn {
+            background-color: var(--accent-color);
+            color: #11111d;
+            border: none;
+            padding: 15px 32px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 159, 67, 0.4);
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+            box-shadow: 0 2px 5px rgba(255, 159, 67, 0.2);
+        }
+
+        /* Case Briefing Styling */
+        .story-box {
+            background-color: var(--panel-color);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: var(--accent-color);
+            margin: 15px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .list-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .suspect-item {
+            background-color: rgba(255,255,255,0.05);
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Map Screen */
+        .map-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 20px;
+            flex-grow: 1;
+        }
+
+        .map-location {
+            background-color: var(--panel-color);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .map-location:active {
+            transform: scale(0.95);
+        }
+
+        .map-location.visited {
+            border-color: rgba(255, 159, 67, 0.4);
+        }
+
+        .map-location .icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .map-location .name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--accent-color);
+            color: #11111d;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        /* Location View */
+        .clues-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .clue-card {
+            background-color: var(--panel-color);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clue-card:active {
+            background-color: rgba(255, 159, 67, 0.1);
+            border-color: var(--accent-color);
+        }
+
+        .clue-card .clue-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        /* Modal Overlay for clues */
+        .modal {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            z-index: 100;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--panel-color);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 2px solid var(--accent-color);
+            animation: modalScale 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes modalScale {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .modal-text {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        /* Footer buttons / Navigation */
+        .footer-nav {
+            margin-top: auto;
+            padding-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            background-color: #3d3d5c;
+            color: white;
+            box-shadow: none;
+        }
+
+        /* Accuse Screen */
+        .suspect-select-card {
+            background-color: var(--panel-color);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suspect-select-card.selected {
+            border-color: var(--accent-color);
+            background-color: rgba(255, 159, 67, 0.1);
+        }
+
+        .suspect-avatar {
+            font-size: 36px;
+        }
+
+        .suspect-details h3 {
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .suspect-details p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Notepad/Notebook tab */
+        .notebook-header {
+            background-color: #2f3542;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        
+        <!-- START SCREEN -->
+        <div id="start-screen" class="screen active">
+            <div class="logo-container">
+                <span class="magnifier-lens">🔎</span>
+            </div>
+            <h1>The Mystery Detective</h1>
+            <p class="subtitle">Can you solve the Case of the Missing Cake? 🍰</p>
+            
+            <div class="input-group">
+                <input type="text" id="detective-name" placeholder="Enter Your Detective Name" maxlength="15">
+            </div>
+            
+            <button class="btn" onclick="startInvestigation()">Start Investigation</button>
+        </div>
+
+        <!-- CASE BRIEFING SCREEN -->
+        <div id="briefing-screen" class="screen">
+            <h1>Case Briefing 📋</h1>
+            <div class="story-box">
+                <p>Welcome, <strong id="player-display-name">Detective</strong>! The school celebration is about to begin, but tragedy has struck! 🚨</p>
+                <br>
+                <p>Someone has stolen the <strong>giant chocolate cake</strong> right from the teachers' room! We need you to inspect the school locations, gather clues, and find the culprit before party time!</p>
+            </div>
+
+            <div class="section-title">👥 The 5 Suspects:</div>
+            <div class="list-container">
+                <div class="suspect-item"><span>👧</span> <strong>Ananya:</strong> Says she was decorating the classroom.</div>
+                <div class="suspect-item"><span>👦</span> <strong>Rahul:</strong> Says he was playing football outside.</div>
+                <div class="suspect-item"><span>👧</span> <strong>Meera:</strong> Says she was in the library.</div>
+                <div class="suspect-item"><span>👦</span> <strong>Arjun:</strong> Says he was helping in the canteen.</div>
+                <div class="suspect-item"><span>👩</span> <strong>Teacher Maya:</strong> Says she was preparing decorations.</div>
+            </div>
+
+            <button class="btn" onclick="showMap()">Go to Investigation Map 📍</button>
+        </div>
+
+        <!-- INVESTIGATION MAP SCREEN -->
+        <div id="map-screen" class="screen">
+            <h1>Investigation Map 📍</h1>
+            <p class="subtitle">Select a location to inspect clues:</p>
+
+            <div class="map-grid">
+                <div class="map-location" id="loc-classroom" onclick="openLocation('classroom')">
+                    <span class="badge">4 Clues</span>
+                    <span class="icon">🏫</span>
+                    <span class="name">Classroom</span>
+                </div>
+                <div class="map-location" id="loc-library" onclick="openLocation('library')">
+                    <span class="badge">4 Clues</span>
+                    <span class="icon">📚</span>
+                    <span class="name">Library</span>
+                </div>
+                <div class="map-location" id="loc-playground" onclick="openLocation('playground')">
+                    <span class="badge">4 Clues</span>
+                    <span class="icon">⚽</span>
+                    <span class="name">Playground</span>
+                </div>
+                <div class="map-location" id="loc-canteen" onclick="openLocation('canteen')">
+                    <span class="badge">4 Clues</span>
+                    <span class="icon">🍴</span>
+                    <span class="name">Canteen</span>
+                </div>
+            </div>
+
+            <div class="footer-nav">
+                <button class="btn" style="background-color: #ff4757; color: white; box-shadow: 0 4px 15px rgba(255,71,87,0.4);" onclick="goToAccuse()">Solve Case (Accuse) 🚨</button>
+            </div>
+        </div>
+
+        <!-- LOCATION SCREEN -->
+        <div id="location-screen" class="screen">
+            <h1 id="location-title">Location</h1>
+            <p class="subtitle">Tap items to look for clues:</p>
+
+            <div id="clues-container" class="clues-grid">
+                <!-- Dynamic Clues go here -->
+            </div>
+
+            <div class="footer-nav">
+                <button class="btn btn-secondary" onclick="showMap()">⬅ Back to Map</button>
+            </div>
+        </div>
+
+        <!-- ACCUSE SCREEN -->
+        <div id="accuse-screen" class="screen">
+            <h1>Who is Guilty? ⚖️</h1>
+            <p class="subtitle">Review your clues and select the thief:</p>
+
+            <div class="notebook-header">💡 REASONING NOTEBOOK:</div>
+            <p style="font-size: 14px; margin-bottom: 15px; color: var(--text-muted);">
+                Hint: The real thief left a <strong>chocolate wrapper</strong> in the canteen and <strong>chocolate fingerprints</strong> on a library book, but claimed they were helping elsewhere! Who could it be?
+            </p>
+
+            <div id="suspects-list">
+                <div class="suspect-select-card" onclick="selectSuspect('Ananya')">
+                    <div class="suspect-avatar">👧</div>
+                    <div class="suspect-details">
+                        <h3>Ananya</h3>
+                        <p>Alibi: Decorating the classroom.</p>
+                    </div>
+                </div>
+                <div class="suspect-select-card" onclick="selectSuspect('Rahul')">
+                    <div class="suspect-avatar">👦</div>
+                    <div class="suspect-details">
+                        <h3>Rahul</h3>
+                        <p>Alibi: Playing football outside.</p>
+                    </div>
+                </div>
+                <div class="suspect-select-card" onclick="selectSuspect('Meera')">
+                    <div class="suspect-avatar">👧</div>
+                    <div class="suspect-details">
+                        <h3>Meera</h3>
+                        <p>Alibi: In the library reading.</p>
+                    </div>
+                </div>
+                <div class="suspect-select-card" onclick="selectSuspect('Arjun')">
+                    <div class="suspect-avatar">👦</div>
+                    <div class="suspect-details">
+                        <h3>Arjun</h3>
+                        <p>Alibi: Helping in the canteen.</p>
+                    </div>
+                </div>
+                <div class="suspect-select-card" onclick="selectSuspect('Teacher Maya')">
+                    <div class="suspect-avatar">👩</div>
+                    <div class="suspect-details">
+                        <h3>Teacher Maya</h3>
+                        <p>Alibi: Preparing decorations.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-nav">
+                <button class="btn btn-secondary" onclick="showMap()">Back</button>
+                <button class="btn" onclick="submitAccusation()">Confirm Choice</button>
+            </div>
+        </div>
+
+        <!-- RESULT SCREEN -->
+        <div id="result-screen" class="screen">
+            <h1 id="result-title">Result</h1>
+            <div class="story-box" id="result-box" style="text-align: center; padding: 30px 20px;">
+                <!-- Outcome message goes here -->
+            </div>
+            <button class="btn" onclick="restartGame()">Play Again 🔄</button>
+        </div>
+
+        <!-- CLUE DIALOG MODAL -->
+        <div id="clue-modal" class="modal">
+            <div class="modal-content">
+                <div id="modal-icon" class="modal-icon">🔍</div>
+                <h3 id="modal-title" style="margin-bottom: 10px; color: var(--accent-color);">Clue Found!</h3>
+                <p id="modal-text" class="modal-text">Clue text goes here...</p>
+                <button class="btn" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let detectiveName = "Detective";
+        let currentSelectedSuspect = "";
+
+        const cluesData = {
+            classroom: [
+                { name: "Red Ribbon", icon: "🎗️", title: "A Roll of Red Ribbon", text: "Bright shiny ribbon used for festive decoration. Ananya and Teacher Maya were using this earlier." },
+                { name: "Muddy Footprint", icon: "👣", title: "A Muddy Footprint", text: "A small dirty shoe mark on the tile floor. Anyone walking in from the playground could have left it." },
+                { name: "Clock", icon: "⏰", title: "Classroom Clock", text: "It ticks quietly. It shows exactly 10:15 AM, right around when the cake vanished!" },
+                { name: "Simple Note", icon: "📝", title: "A Practice Note", text: "A scrap paper with spelling words practiced on it. Totally standard schoolwork." }
+            ],
+            library: [
+                { name: "Fingerprints", icon: "📕", title: "Chocolate Fingerprints", text: "A mystery book has dark chocolate smudges on the cover! The thief definitely came here with messy fingers." },
+                { name: "Torn Paper", icon: "🧻", title: "Torn Wrapping Paper", text: "A snippet of silver paper. Seems like trash left over from decoration boxes." },
+                { name: "Window", icon: "🪟", title: "Library Window", text: "It overlooks the playground. It's wide open, letting in a warm breeze." },
+                { name: "Strange Note", icon: "✉️", title: "A Strange Note", text: "It reads: 'Don't forget the secret ingredient!' Written in sloppy handwriting." }
+            ],
+            playground: [
+                { name: "Football", icon: "⚽", title: "Shiny Football", text: "It's a bit scuffed from a game. Rahul was practicing his kicks here all morning." },
+                { name: "Muddy Shoes", icon: "👟", title: "Muddy Sports Shoes", text: "A pair of sneakers left near the grass. They match the muddy footprints found in the school corridors." },
+                { name: "Water Bottle", icon: "🧪", title: "Water Bottle", text: "Half empty cold water. Perfect for a quick break after running around." },
+                { name: "Bench", icon: "🪵", title: "Wooden Bench", text: "A cool place to rest under the big oak tree." }
+            ],
+            canteen: [
+                { name: "Wrapper", icon: "🍫", title: "Chocolate Wrapper", text: "An empty gourmet chocolate wrapper found under a table. This matches the exact type of premium cocoa used in the missing cake!" },
+                { name: "Flour Bag", icon: "🛍️", title: "Baking Flour Bag", text: "A large heavy sack of flour used by the canteen staff to prepare snacks." },
+                { name: "Empty Plate", icon: "🍽️", title: "An Empty Plate", text: "A clean porcelain plate sitting on the counter. It wasn't used for the cake." },
+                { name: "Footprints", icon: "👣", title: "Dusty Footprints", text: "Traces of white flour dusty prints leading towards the back exit door." }
+            ]
+        };
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function startInvestigation() {
+            const nameInput = document.getElementById('detective-name').value.trim();
+            if(nameInput) {
+                detectiveName = nameInput;
+            } else {
+                detectiveName = "Super Sleuth";
+            }
+            document.getElementById('player-display-name').innerText = "Detective " + detectiveName;
+            switchScreen('briefing-screen');
+        }
+
+        function showMap() {
+            switchScreen('map-screen');
+        }
+
+        function openLocation(locId) {
+            const titleElement = document.getElementById('location-title');
+            titleElement.innerText = locId.charAt(0).toUpperCase() + locId.slice(1);
+            
+            document.getElementById(`loc-${locId}`).classList.add('visited');
+            
+            const container = document.getElementById('clues-container');
+            container.innerHTML = '';
+            
+            cluesData[locId].forEach(clue => {
+                const card = document.createElement('div');
+                card.className = 'clue-card';
+                card.onclick = () => showClueModal(clue);
+                card.innerHTML = `
+                    <div class="clue-icon">${clue.icon}</div>
+                    <div style="font-size: 14px; font-weight: bold;">${clue.name}</div>
+                `;
+                container.appendChild(card);
+            });
+            
+            switchScreen('location-screen');
+        }
+
+        function showClueModal(clue) {
+            document.getElementById('modal-title').innerText = clue.title;
+            document.getElementById('modal-text').innerText = clue.text;
+            document.getElementById('modal-icon').innerText = clue.icon;
+            document.getElementById('clue-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('clue-modal').classList.remove('active');
+        }
+
+        function goToAccuse() {
+            switchScreen('accuse-screen');
+        }
+
+        function selectSuspect(name) {
+            currentSelectedSuspect = name;
+            document.querySelectorAll('.suspect-select-card').forEach(card => {
+                card.classList.remove('selected');
+                if(card.querySelector('.suspect-details h3').innerText === name) {
+                    card.classList.add('selected');
+                }
+            });
+        }
+
+        function submitAccusation() {
+            if(!currentSelectedSuspect) {
+                alert("Please select a suspect first!");
+                return;
+            }
+
+            const title = document.getElementById('result-title');
+            const box = document.getElementById('result-box');
+
+            // Arjun is the culprit since he claimed to be in the canteen helping out,
+            // but the evidence shows a chocolate wrapper under the table and messy fingerprints in the library!
+            if(currentSelectedSuspect === 'Arjun') {
+                title.innerHTML = "🎉 CASE SOLVED! 🎉";
+                box.innerHTML = `
+                    <span style="font-size: 60px;">🏆</span>
+                    <h2 style="color: var(--success-color); margin: 15px 0;">Outstanding Work, Detective ${detectiveName}!</h2>
+                    <p>You cornered <strong>Arjun</strong>! When confronted with the chocolate wrapper from the canteen and his messy chocolate fingerprints left on the library book, he confessed!</p>
+                    <br>
+                    <p>He admitted he couldn't resist the smell of the amazing giant cake and sneaked a big piece before hiding the rest to share with his friends later. Thanks to you, the cake was returned safely and the celebration is saved! 🎂🕵️‍♂️</p>
+                `;
+            } else {
+                title.innerHTML = "❌ WRONG SUSPECT ❌";
+                box.innerHTML = `
+                    <span style="font-size: 60px;">🕵️‍♂️❓</span>
+                    <h2 style="color: var(--danger-color); margin: 15px 0;">Not Quite, Detective!</h2>
+                    <p>You accused <strong>${currentSelectedSuspect}</strong>, but their alibi holds up perfectly and they don't match the trails of chocolate evidence left behind!</p>
+                    <br>
+                    <p>The true culprit is still at large, and the cake is slipping away! Don't give up—go back, look closely at the clues in the <strong>Canteen</strong> and <strong>Library</strong>, and try again!</p>
+                `;
+            }
+            switchScreen('result-screen');
+        }
+
+        function restartGame() {
+            currentSelectedSuspect = "";
+            document.querySelectorAll('.suspect-select-card').forEach(card => card.classList.remove('selected'));
+            document.querySelectorAll('.map-location').forEach(loc => loc.classList.remove('visited'));
+            switchScreen('start-screen');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Escape: The Locked Room</title>
+<style>
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+    background:linear-gradient(135deg,#160d2b,#30164d 55%,#10172f);
+    color:#fff; display:flex; justify-content:center; align-items:center; padding:16px;
+  }
+  .game{
+    width:min(520px,100%); min-height:650px; border:1px solid rgba(255,255,255,.16);
+    border-radius:28px; padding:22px; background:rgba(20,15,38,.88);
+    box-shadow:0 25px 80px rgba(0,0,0,.45); backdrop-filter:blur(12px);
+  }
+  .top{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:16px}
+  .badge{padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.1);font-size:12px}
+  h1{font-size:30px;margin:10px 0 8px;line-height:1.05}
+  h2{font-size:23px;margin:8px 0 12px}
+  p{color:#d8d2e5;line-height:1.55}
+  .screen{display:none}.screen.active{display:block}
+  .hero{font-size:72px;text-align:center;margin:28px 0 12px}
+  button{
+    width:100%; border:0; border-radius:16px; padding:14px 16px; margin:7px 0;
+    font-size:16px;font-weight:750;cursor:pointer;color:#fff;
+    background:linear-gradient(135deg,#a855f7,#ec4899);
+  }
+  button.secondary{background:rgba(255,255,255,.1);font-weight:650}
+  button:active{transform:scale(.98)}
+  input{
+    width:100%;padding:15px;border-radius:14px;border:1px solid rgba(255,255,255,.2);
+    background:rgba(0,0,0,.25);color:#fff;font-size:18px;text-align:center;outline:none;
+  }
+  .question{background:rgba(255,255,255,.06);border-radius:18px;padding:18px;margin:14px 0}
+  .options button{background:rgba(255,255,255,.09);text-align:left}
+  .options button:hover{background:rgba(255,255,255,.15)}
+  .feedback{min-height:27px;text-align:center;font-weight:700;margin:8px 0}
+  .good{color:#86efac}.bad{color:#fda4af}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+  .stat{background:rgba(255,255,255,.07);border-radius:13px;padding:9px;text-align:center;font-size:12px}
+  .stat b{display:block;font-size:18px;margin-top:2px}
+  .progress{height:7px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;margin-bottom:18px}
+  .bar{height:100%;width:20%;background:linear-gradient(90deg,#c084fc,#f472b6);transition:.3s}
+  .symbols{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:15px 0}
+  .symbol{aspect-ratio:1;border-radius:14px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:30px;cursor:pointer;border:1px solid transparent}
+  .symbol:hover{border-color:#d8b4fe}
+  .clue{font-size:13px;color:#bdb4ce;background:rgba(255,255,255,.05);padding:11px;border-radius:12px}
+  .final-code{font-size:38px;letter-spacing:8px;text-align:center;font-weight:900;margin:20px 0}
+  .shake{animation:shake .28s}
+  @keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}}
+</style>
+</head>
+<body>
+<div class="game">
+
+  <section id="start" class="screen active">
+    <div class="hero">🔐</div>
+    <h1>Escape: The Locked Room</h1>
+    <p>You woke up in a mysterious room. The door is locked. Solve <b>5 puzzles</b>, collect the hidden digits, and crack the final lock.</p>
+    <div class="question">
+      <b>🎯 Mission</b><br>
+      Find the 4-digit escape code before time runs out.
+    </div>
+    <button onclick="startGame()">START ESCAPE</button>
+    <button class="secondary" onclick="showRules()">HOW TO PLAY</button>
+  </section>
+
+  <section id="rules" class="screen">
+    <h2>🕵️ How to Play</h2>
+    <p>• You have <b>5 minutes</b> and <b>3 lives</b>.<br>
+    • Solve each puzzle to unlock the next room.<br>
+    • Wrong answers cost one life.<br>
+    • You collect one digit from each solved puzzle.<br>
+    • Use the final four digits to escape!</p>
+    <button onclick="show('start')">BACK</button>
+  </section>
+
+  <section id="game" class="screen">
+    <div class="top">
+      <span class="badge" id="level">PUZZLE 1/5</span>
+      <span class="badge">⏱ <span id="timer">05:00</span></span>
+    </div>
+    <div class="stats">
+      <div class="stat">❤️ Lives<b id="lives">3</b></div>
+      <div class="stat">🔢 Digits<b id="digits">0/4</b></div>
+      <div class="stat">⭐ Score<b id="score">0</b></div>
+    </div>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div id="puzzle"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="secondary" id="hintBtn" onclick="hint()">💡 Need a hint?</button>
+  </section>
+
+  <section id="win" class="screen">
+    <div class="hero">🎉</div>
+    <h1>You Escaped!</h1>
+    <p>You solved every puzzle and cracked the lock.</p>
+    <div class="question">
+      <div>YOUR ESCAPE CODE</div>
+      <div class="final-code" id="finalCode"></div>
+      <div style="text-align:center">⭐ Final score: <b id="finalScore"></b></div>
+    </div>
+    <button onclick="startGame()">PLAY AGAIN</button>
+  </section>
+
+  <section id="lose" class="screen">
+    <div class="hero">😵‍💫</div>
+    <h1>Locked In!</h1>
+    <p id="loseText">The room won this round. Try again and watch the timer.</p>
+    <button onclick="startGame()">TRY AGAIN</button>
+  </section>
+
+</div>
+
+<script>
+let current=0, lives=3, score=0, digits=[], time=300, timerId=null, locked=false;
+const puzzles=[
+  {
+    type:'choice', digit:'2', hint:'Think of perfect squares: 1², 2², 3², 4²…',
+    title:'🧩 The Number Wall',
+    text:'What number comes next?<br><br><b>1, 4, 9, 16, ?</b>',
+    options:['20','24','25','32'], answer:'25'
+  },
+  {
+    type:'choice', digit:'7', hint:'Only one statement can be true. Test the statements against each other.',
+    title:'🔑 The Three Notes',
+    text:'Three notes are stuck to three boxes:<br><br>📦 A: “The key is NOT here.”<br>📦 B: “The key is in A.”<br>📦 C: “The key is NOT in B.”<br><br><b>Exactly ONE note is true. Where is the key?</b>',
+    options:['Box A','Box B','Box C','Impossible'], answer:'Box B'
+  },
+  {
+    type:'tap', digit:'4', hint:'Look for the symbol that is different from all the others.',
+    title:'👀 Find the Odd One',
+    text:'One symbol is different. Tap it!',
+  },
+  {
+    type:'choice', digit:'1', hint:'Read the first letter of each word: Hidden Under Every Red Door.',
+    title:'📜 The Secret Message',
+    text:'The clue says:<br><br><b>Hidden Under Every Red Door</b><br><br>What 5-letter code does it hide?',
+    options:['HURED','HUERD','HEURD','HURED'], answer:'HUERD'
+  },
+  {
+    type:'input', digit:'9', hint:'The final lock wants the digits you collected from puzzles 1–4, in order.',
+    title:'🚪 The Final Lock',
+    text:'Enter the <b>4-digit code</b> collected from the first four puzzles.',
+    final:true, answer:'2741'
+  }
+];
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showRules(){show('rules')}
+
+function startGame(){
+  current=0;lives=3;score=0;digits=[];time=300;locked=false;
+  clearInterval(timerId);
+  timerId=setInterval(tick,1000);
+  show('game'); render();
+}
+function tick(){
+  time--;
+  let m=String(Math.floor(time/60)).padStart(2,'0'),s=String(time%60).padStart(2,'0');
+  document.getElementById('timer').textContent=m+':'+s;
+  if(time<=0){clearInterval(timerId);endLose('Time ran out!');}
+}
+function render(){
+  const p=puzzles[current];
+  document.getElementById('level').textContent=`PUZZLE ${current+1}/5`;
+  document.getElementById('lives').textContent=lives;
+  document.getElementById('digits').textContent=`${Math.min(digits.length,4)}/4`;
+  document.getElementById('score').textContent=score;
+  document.getElementById('bar').style.width=((current+1)/5*100)+'%';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('hintBtn').style.display=p.final?'none':'block';
+  let html=`<div class="question"><h2>${p.title}</h2><p>${p.text}</p>`;
+  if(p.type==='choice'){
+    html+=`<div class="options">${p.options.map((o,i)=>`<button onclick="answerChoice(${i})">${o}</button>`).join('')}</div>`;
+  } else if(p.type==='tap'){
+    const arr=['🔺','🔺','🔺','🔺','🔺','🔺','🔺','🔺','🔺','🔺','🔻','🔺'];
+    arr.sort(()=>Math.random()-.5);
+    html+=`<div class="symbols">${arr.map((x,i)=>`<div class="symbol" onclick="tapSymbol('${x}',this)">${x}</div>`).join('')}</div>`;
+  } else {
+    html+=`<input id="codeInput" inputmode="numeric" maxlength="4" placeholder="ENTER CODE"><button onclick="submitFinal()">🔓 UNLOCK</button>`;
+  }
+  html+='</div>';
+  document.getElementById('puzzle').innerHTML=html;
+}
+function feedback(msg,good){
+  const f=document.getElementById('feedback');
+  f.textContent=msg;f.className='feedback '+(good?'good':'bad');
+}
+function wrong(){
+  lives--;score=Math.max(0,score-50);
+  document.getElementById('lives').textContent=lives;
+  document.querySelector('.game').classList.remove('shake');void document.querySelector('.game').offsetWidth;
+  document.querySelector('.game').classList.add('shake');
+  if(lives<=0){endLose('You used all three lives.');}
+}
+function answerChoice(i){
+  if(locked)return;
+  locked=true;
+  const p=puzzles[current], chosen=p.options[i];
+  if(chosen===p.answer){success();}
+  else{feedback('❌ Not quite! You lost a life.',false);wrong();setTimeout(()=>{locked=false;if(lives>0)render()},700);}
+}
+function tapSymbol(x,el){
+  if(locked)return;
+  locked=true;
+  if(x==='🔻'){success();}
+  else{feedback('❌ Nope! Find the odd symbol.',false);wrong();setTimeout(()=>{locked=false;if(lives>0)render()},650);}
+}
+function submitFinal(){
+  const v=(document.getElementById('codeInput').value||'').trim();
+  if(v==='2741'){score+=500;digits.push('9');win();}
+  else{feedback('🔒 Wrong code. The lock rejects it!',false);wrong();}
+}
+function success(){
+  const p=puzzles[current];
+  score+=150;digits.push(p.digit);
+  feedback('✅ Correct! A digit has been collected.',true);
+  document.getElementById('score').textContent=score;
+  document.getElementById('digits').textContent=`${Math.min(digits.length,4)}/4`;
+  setTimeout(()=>{
+    if(current<4){current++;locked=false;render();}
+    else win();
+  },750);
+}
+function hint(){
+  const p=puzzles[current];
+  feedback('💡 Hint: '+p.hint,true);
+  score=Math.max(0,score-25);
+  document.getElementById('score').textContent=score;
+}
+function win(){
+  clearInterval(timerId);
+  show('win');
+  document.getElementById('finalCode').textContent='2741';
+  document.getElementById('finalScore').textContent=score;
+}
+function endLose(msg){
+  clearInterval(timerId);
+  document.getElementById('loseText').textContent=msg+' Ready for another attempt?';
+  show('lose');
+}
+</script>
+</body>
+</html>
