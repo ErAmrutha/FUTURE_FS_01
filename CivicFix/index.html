@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CivicFix | Smart Civic Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- NAVIGATION -->
+    <header class="navbar">
+        <a href="#home" class="logo">Civic<span>Fix</span></a>
+
+        <nav>
+            <a href="#home">Home</a>
+            <a href="#report">Report Issue</a>
+            <a href="#track">Track</a>
+            <a href="#dashboard">Dashboard</a>
+        </nav>
+
+        <div class="auth-buttons">
+            <button id="loginBtn" class="outline-btn">Login</button>
+            <button id="registerBtn" class="primary-btn">Register</button>
+        </div>
+    </header>
+
+    <!-- HOME -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <span class="tagline">SMARTER CITIES START WITH US</span>
+
+            <h1>Building Better Communities, <span>Together.</span></h1>
+
+            <p>
+                Report civic problems, track their progress and
+                contribute towards a cleaner, safer and better
+                neighbourhood.
+            </p>
+
+            <a href="#report" class="primary-btn">Report an Issue →</a>
+            <a href="#track" class="secondary-btn">Track Complaint</a>
+        </div>
+    </section>
+
+    <!-- STATISTICS -->
+    <section class="statistics">
+        <div class="stat-card">
+            <h2 id="totalCount">0</h2>
+            <p>Total Complaints</p>
+        </div>
+
+        <div class="stat-card">
+            <h2 id="pendingCount">0</h2>
+            <p>Pending</p>
+        </div>
+
+        <div class="stat-card">
+            <h2 id="progressCount">0</h2>
+            <p>In Progress</p>
+        </div>
+
+        <div class="stat-card">
+            <h2 id="resolvedCount">0</h2>
+            <p>Resolved</p>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-section">
+        <h2>How CivicFix Works</h2>
+        <p class="section-subtitle">Three simple steps to improve your community.</p>
+
+        <div class="steps">
+            <div class="step-card">
+                <span>01</span>
+                <h3>Report</h3>
+                <p>Identify and report civic issues in your area.</p>
+            </div>
+
+            <div class="step-card">
+                <span>02</span>
+                <h3>Track</h3>
+                <p>Receive a unique ID and monitor your complaint.</p>
+            </div>
+
+            <div class="step-card">
+                <span>03</span>
+                <h3>Resolve</h3>
+                <p>Follow the progress towards resolving the issue.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- REPORT ISSUE -->
+    <section id="report" class="main-section">
+        <div class="section-heading">
+            <h2>Report a Civic Issue</h2>
+            <p>Provide the details below to register your complaint.</p>
+        </div>
+
+        <form id="complaintForm">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <input type="text" id="name" placeholder="Enter your name" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Issue Category</label>
+                    <select id="category" required>
+                        <option value="">Select category</option>
+                        <option>Pothole</option>
+                        <option>Garbage</option>
+                        <option>Damaged Road</option>
+                        <option>Streetlight</option>
+                        <option>Water Leakage</option>
+                        <option>Drainage</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Issue Location</label>
+                <input type="text" id="location" placeholder="Enter area, street or landmark" required>
+            </div>
+
+            <div class="form-group">
+                <label>Issue Description</label>
+                <textarea id="description" placeholder="Describe the problem..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Upload Issue Photograph (Optional)</label>
+                <input type="file" id="photo" accept="image/*">
+                <div id="photoPreview"></div>
+            </div>
+
+            <button type="submit" class="primary-btn">Submit Complaint</button>
+
+            <div id="confirmation"></div>
+        </form>
+    </section>
+
+    <!-- TRACK COMPLAINT -->
+    <section id="track" class="main-section tracking-section">
+        <div class="section-heading">
+            <h2>Track Your Complaint</h2>
+            <p>Enter your complaint ID to check its current status.</p>
+        </div>
+
+        <div class="tracking-box">
+            <input type="text" id="trackingId" placeholder="Example: CF123456">
+            <button id="trackBtn" class="primary-btn">Track Complaint</button>
+        </div>
+
+        <div id="trackingResult"></div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="main-section dashboard-section">
+
+        <div class="section-heading">
+            <h2>Complaint Management Dashboard</h2>
+            <p>View and manage registered civic complaints.</p>
+        </div>
+
+        <div class="dashboard-controls">
+
+            <input type="text" id="searchInput" placeholder="Search by ID or location...">
+
+            <select id="filterCategory">
+                <option value="">All Categories</option>
+                <option>Pothole</option>
+                <option>Garbage</option>
+                <option>Damaged Road</option>
+                <option>Streetlight</option>
+                <option>Water Leakage</option>
+                <option>Drainage</option>
+                <option>Other</option>
+            </select>
+
+            <select id="filterStatus">
+                <option value="">All Statuses</option>
+                <option>Pending</option>
+                <option>In Progress</option>
+                <option>Resolved</option>
+            </select>
+
+        </div>
+
+        <div id="complaintList"></div>
+
+    </section>
+
+    <!-- LOGIN / REGISTER MODAL -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <button id="closeModal" class="close-btn">&times;</button>
+
+            <h2 id="authTitle">Citizen Login</h2>
+
+            <form id="authForm">
+                <div id="authNameGroup" class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="authName" placeholder="Your name">
+                </div>
+
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="authEmail" placeholder="Enter email" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="authPassword" placeholder="Enter password" required>
+                </div>
+
+                <button type="submit" class="primary-btn" id="authSubmit">
+                    Login
+                </button>
+
+                <p id="authMessage"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <h2>CivicFix</h2>
+        <p>Report. Track. Improve.</p>
+        <p>© 2026 CivicFix. Academic Demonstration Project.</p>
+    </footer>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
